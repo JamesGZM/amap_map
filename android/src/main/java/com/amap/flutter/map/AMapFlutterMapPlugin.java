@@ -12,6 +12,7 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.lifecycle.FlutterLifecycleAdapter;
+import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 
 /**
@@ -50,6 +51,8 @@ public class AMapFlutterMapPlugin implements
                             VIEW_TYPE,
                             new AMapPlatformViewFactory(registrar.messenger(), new ProxyLifecycleProvider(activity)));
         }
+
+        LocationPlugin.registerWith(registrar);
     }
 
     // FlutterPlugin
@@ -64,6 +67,10 @@ public class AMapFlutterMapPlugin implements
                         new AMapPlatformViewFactory(
                                 binding.getBinaryMessenger(),
                                 () -> lifecycle));
+
+        // Register the LocationPlugin
+        final MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "amap_location_plugin");
+        channel.setMethodCallHandler(new LocationPlugin(binding.getApplicationContext(), channel));
     }
 
     @Override

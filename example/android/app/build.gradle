@@ -39,6 +39,10 @@ android {
         targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+
+        manifestPlaceholders += [
+                AMAP_APPKEY: "ef1f61e1d8644530fb8dbaa8a0d03332",
+        ]
     }
     signingConfigs {
         debug {

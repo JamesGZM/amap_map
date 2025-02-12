@@ -1,0 +1,35 @@
+name: x_amap_base
+description: AMap flutter plugin, base dependency library for integrating AMapSDK in applications.
+version: 1.0.3
+homepage: https://github.com/kuloud/amap_base
+issue_tracker: https://github.com/kuloud/amap_base/issues
+platforms:
+  android:
+  ios:
+  web:
+  linux:
+  macos:
+  windows:
+
+topics:
+  - amap
+
+environment:
+  sdk: '>=3.1.5 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+
+

@@ -6,9 +6,14 @@ import android.location.Location;
 
 import androidx.annotation.NonNull;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdate;
 import com.amap.api.maps.CameraUpdateFactory;
+import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.TextureMapView;
 import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.CustomMapStyleOptions;
@@ -24,6 +29,7 @@ import com.amap.flutter.map.utils.LogUtil;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -38,11 +44,12 @@ public class MapController
         implements MyMethodCallHandler,
         AMapOptionsSink,
         AMap.OnMapLoadedListener,
-        AMap.OnMyLocationChangeListener,
         AMap.OnCameraChangeListener,
         AMap.OnMapClickListener,
         AMap.OnMapLongClickListener,
-        AMap.OnPOIClickListener {
+        AMap.OnPOIClickListener,
+        LocationSource,
+        AMapLocationListener {
     private static final String CLASS_NAME = "MapController";
     private final MethodChannel methodChannel;
     private final AMap amap;
@@ -51,13 +58,17 @@ public class MapController
     private boolean mapLoaded = false;
     private boolean myLocationShowing = false;
 
+    private AMapLocationClient locationClient;
+    private LocationSource.OnLocationChangedListener mOnLocationChangedListener = null;
+    private boolean isFirstLocationSuc = true; //是否第一次定位成功 默认是
+
     public MapController(MethodChannel methodChannel, TextureMapView mapView) {
         this.methodChannel = methodChannel;
         this.mapView = mapView;
         amap = mapView.getMap();
 
         amap.addOnMapLoadedListener(this);
-        amap.addOnMyLocationChangeListener(this);
+        amap.setLocationSource(this);
         amap.addOnCameraChangeListener(this);
         amap.addOnMapLongClickListener(this);
         amap.addOnMapClickListener(this);
@@ -262,12 +273,69 @@ public class MapController
     }
 
     @Override
-    public void onMyLocationChange(Location location) {
-        if (null != methodChannel && myLocationShowing) {
-            final Map<String, Object> arguments = new HashMap<String, Object>(2);
-            arguments.put("location", ConvertUtil.location2Map(location));
-            methodChannel.invokeMethod("location#changed", arguments);
-            LogUtil.i(CLASS_NAME, "onMyLocationChange===>" + arguments);
+    public void activate(OnLocationChangedListener listener) {
+        mOnLocationChangedListener = listener;
+        isFirstLocationSuc = true;
+
+        if (locationClient == null) {
+            try {
+                locationClient = new AMapLocationClient(mapView.getContext());
+                // 设置定位监听
+                locationClient.setLocationListener(this);
+                AMapLocationClientOption locationOption = new AMapLocationClientOption();
+                // 设置为高精度定位模式
+                locationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+                // 设置定位参数
+                locationClient.setLocationOption(locationOption);
+
+                // 此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
+                // 注意设置合适的定位时间的间隔（最小间隔支持为2000ms），并且在合适时间调用stopLocation()方法来取消定位请求
+                // 在定位结束后，在合适的生命周期调用onDestroy()方法
+                // 在单次定位情况下，定位无论成功与否，都无需调用stopLocation()方法移除请求，定位sdk内部会移除
+                locationClient.startLocation();
+            } catch (Exception e) {
+                LogUtil.e(CLASS_NAME, "<activate>", e);
+            }
+        }
+    }
+
+    @Override
+    public void deactivate() {
+        mOnLocationChangedListener = null;
+        if (locationClient != null) {
+            locationClient.stopLocation();
+            locationClient.onDestroy();
+        }
+        locationClient = null;
+    }
+
+    @Override
+    public void onLocationChanged(AMapLocation location) {
+        if (mOnLocationChangedListener != null && locationClient != null) {
+            if (location != null && location.getErrorCode() == 0) {
+
+                if (null != methodChannel && myLocationShowing) {
+                    final Map<String, Object> arguments = new HashMap<String, Object>(2);
+                    arguments.put("location", ConvertUtil.location2Map(location));
+                    methodChannel.invokeMethod("location#changed", arguments);
+                    LogUtil.i(CLASS_NAME, "onLocationChanged===>" + arguments);
+                }
+
+                if (isFirstLocationSuc && myLocationShowing) {
+                    mOnLocationChangedListener.onLocationChanged(location); // 显示系统小蓝点
+                    //参数依次是：视角调整区域的中心点坐标、希望调整到的缩放级别、俯仰角0°~45°（垂直与地图时为0）、偏航角 0~360° (正北方为0)
+                    CameraUpdate mCameraUpdate = CameraUpdateFactory.newCameraPosition(
+                            new CameraPosition(new LatLng(location.getLatitude(), location.getLongitude()), 14f, 0f, 0f));
+                    amap.moveCamera(mCameraUpdate);
+                    isFirstLocationSuc = false;
+                }
+            } else {
+                try {
+                    LogUtil.e(CLASS_NAME, "<onLocationChanged>", new Exception(location.getErrorCode() + ":" + location.getErrorInfo()));
+                } catch (Exception e) {
+                    LogUtil.e(CLASS_NAME, "<onLocationChanged>", e);
+                }
+            }
         }
     }
 

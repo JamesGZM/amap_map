@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:amap_map/amap_map.dart';
 import 'package:amap_map_example/animated_category_item.dart';
 import 'package:amap_map_example/category_list_item.dart';
@@ -6,6 +8,7 @@ import 'package:amap_map_example/data/demos.dart';
 import 'package:amap_map_example/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:x_amap_base/x_amap_base.dart';
 
 final List<Permission> needPermissionList = [
   Permission.location,
@@ -23,6 +26,8 @@ class _AMapDemoState extends State<AMapDemo>
   late AnimationController _animationController;
   final RestorableBool _isMapListExpanded = RestorableBool(false);
 
+  StreamSubscription<AMapLocation>? _locationSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +38,16 @@ class _AMapDemoState extends State<AMapDemo>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
+
+    _locationSubscription = LocationPlugin.locationStream.listen((event) {
+      print('location: ${event.toJson()}');
+    });
+  }
+
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -51,10 +66,17 @@ class _AMapDemoState extends State<AMapDemo>
 
   @override
   Widget build(BuildContext context) {
-    AMapInitializer.init(context, apiKey: ConstConfig.amapApiKeys);
-    AMapInitializer.updatePrivacyAgree(ConstConfig.amapPrivacyStatement);
+    LocationPlugin.init(context, apiKey: ConstConfig.amapApiKeys);
+    LocationPlugin.updatePrivacyAgree(ConstConfig.amapPrivacyStatement);
     return Scaffold(
       appBar: AppBar(title: const Text('高德地图示例')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async{
+          AMapLocation location = await LocationPlugin.getSingleLocation();
+          print('location: ${location.toJson()}');
+        },
+        child: Icon(Icons.location_on),
+      ),
       body: ListView(
         children: [
           AnimatedCategoryItem(
@@ -93,6 +115,8 @@ class _AMapDemoState extends State<AMapDemo>
 }
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  LocationPlugin.initialize();
   runApp(MaterialApp(
       themeMode: ThemeMode.light,
       onGenerateRoute: RouteConfig.onGenerateRoute,

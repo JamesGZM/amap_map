@@ -1,1 +1,12 @@
-<manifest package="com.amap.flutter.map"></manifest>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.amap.flutter.map">
+
+    <application>
+
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="${AMAP_APPKEY}" />
+        <service android:name="com.amap.api.location.APSService" />
+    </application>
+
+</manifest>

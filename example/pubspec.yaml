@@ -18,7 +18,8 @@ dependencies:
   amap_map:
     path: ../
   x_common: ^1.0.4
-  x_amap_base: ^1.0.3
+  x_amap_base:
+    path: ../packages/x_amap_base
 
 dev_dependencies:
   flutter_test:

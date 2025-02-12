@@ -7,37 +7,41 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
+#import <AMapLocationKit/AMapLocationKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class MAUserLocation;
-
 @interface AMapLocation : NSObject
 
-///定位提供者
-///
-///iOS平台只会返回'iOS'
-@property (nonatomic, copy) NSString *provider;
-
-///经纬度
 @property (nonatomic, assign) CLLocationCoordinate2D latLng;
-
-///水平精确度
 @property (nonatomic, assign) double accuracy;
-
-///海拔
 @property (nonatomic, assign) double altitude;
-
-///角度
 @property (nonatomic, assign) double bearing;
-
-///速度
 @property (nonatomic, assign) double speed;
-
-///定位时间，单位：毫秒
-@property (nonatomic, assign) double time;
+@property (nonatomic, assign) NSTimeInterval time;
+@property (nonatomic, copy) NSString *city;
+@property (nonatomic, copy) NSString *citycode;
+@property (nonatomic, copy) NSString *adcode;
+@property (nonatomic, copy) NSString *country;
+@property (nonatomic, copy) NSString *province;
+@property (nonatomic, copy) NSString *district;
+@property (nonatomic, copy) NSString *road;
+@property (nonatomic, copy) NSString *street;
+@property (nonatomic, copy) NSString *number;
+@property (nonatomic, copy) NSString *poiname;
+@property (nonatomic, assign) int errorCode;
+@property (nonatomic, copy) NSString *errorInfo;
+@property (nonatomic, assign) int locationType;
+@property (nonatomic, copy) NSString *locationDetail;
+@property (nonatomic, copy) NSString *aoiname;
+@property (nonatomic, copy) NSString *address;
+@property (nonatomic, copy) NSString *poiid;
+@property (nonatomic, copy) NSString *floor;
+@property (nonatomic, copy) NSString *desc;
+@property (nonatomic, copy) NSString *provider; // 添加 provider 属性
 
 - (void)updateWithUserLocation:(CLLocation *)location;
+- (void)updateWithReGeocode:(AMapLocationReGeocode *)regeocode;
 
 @end
 

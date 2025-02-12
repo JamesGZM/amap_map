@@ -1,10 +1,11 @@
 #import "AMapFlutterMapPlugin.h"
 #import "AMapFlutterFactory.h"
+#import "LocationPlugin.h"
 
-@implementation AMapFlutterMapPlugin{
-  NSObject<FlutterPluginRegistrar>* _registrar;
-  FlutterMethodChannel* _channel;
-  NSMutableDictionary* _mapControllers;
+@implementation AMapFlutterMapPlugin {
+    NSObject<FlutterPluginRegistrar>* _registrar;
+    FlutterMethodChannel* _channel;
+    NSMutableDictionary* _mapControllers;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -13,6 +14,9 @@
                             withId:@"com.amap.flutter.map"
   gestureRecognizersBlockingPolicy:
      FlutterPlatformViewGestureRecognizersBlockingPolicyWaitUntilTouchesEnded];
+
+    // 注册 LocationPlugin
+    [LocationPlugin registerWithRegistrar:registrar];
 }
 
 @end

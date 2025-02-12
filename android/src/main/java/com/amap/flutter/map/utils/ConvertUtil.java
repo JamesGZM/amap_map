@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
+import com.amap.api.location.AMapLocation;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdate;
 import com.amap.api.maps.CameraUpdateFactory;
@@ -23,10 +24,13 @@ import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.maps.model.Poi;
 import com.amap.flutter.map.core.AMapOptionsSink;
 
-import java.lang.reflect.Method;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -54,30 +58,16 @@ public class ConvertUtil {
         Object hasShowObj = privacyStatementMap.get("hasShow");
         Object hasAgreeObj = privacyStatementMap.get("hasAgree");
 
-        Class<MapsInitializer> clazz = MapsInitializer.class;
-
         if (null != hasContainsObj
                 && null != hasShowObj) {
             boolean hasContains = toBoolean(hasContainsObj);
             boolean hasShow = toBoolean(hasShowObj);
-            //使用反射的方法调用适配之前的版本
-            try {
-                Method method = clazz.getMethod("updatePrivacyShow", Context.class, boolean.class, boolean.class);
-                method.invoke(null, context, hasContains, hasShow);
-            } catch (Throwable e) {
-//                e.printStackTrace();
-            }
+            MapsInitializer.updatePrivacyShow(context, hasContains, hasShow);
         }
 
         if (null != hasAgreeObj) {
             boolean hasAgree = toBoolean(hasAgreeObj);
-            //使用反射的方法调用适配之前的版本
-            try {
-                Method method = clazz.getMethod("updatePrivacyAgree", Context.class, boolean.class);
-                method.invoke(null, context, hasAgree);
-            } catch (Throwable e) {
-//                e.printStackTrace();
-            }
+            MapsInitializer.updatePrivacyAgree(context, hasAgree);
         }
     }
 
@@ -360,7 +350,7 @@ public class ConvertUtil {
         return myLocationStyle;
     }
 
-    public static Object location2Map(Location location) {
+    public static Object location2Map(AMapLocation location) {
         if (null == location) {
             return null;
         }
@@ -372,7 +362,14 @@ public class ConvertUtil {
             return null;
         }
 
-        final Map<String, Object> object = new HashMap<String, Object>();
+        JSONObject jsonObject = location.toJson(1);
+
+        Map<String, Object> object;
+        try {
+            object = jsonToMap(jsonObject);
+        } catch (JSONException e) {
+            object = new HashMap<>();
+        }
         object.put("provider", location.getProvider());
         object.put("latLng", Arrays.asList(location.getLatitude(), location.getLongitude()));
         object.put("accuracy", location.getAccuracy());
@@ -381,6 +378,19 @@ public class ConvertUtil {
         object.put("speed", location.getSpeed());
         object.put("time", location.getTime());
         return object;
+    }
+
+    private static Map<String, Object> jsonToMap(JSONObject jsonObject) throws JSONException {
+        Map<String, Object> map = new HashMap<>();
+        Iterator<String> keys = jsonObject.keys();
+
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = jsonObject.get(key);
+            map.put(key, value);
+        }
+
+        return map;
     }
 
 

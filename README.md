@@ -42,7 +42,7 @@ class DemoWidget extends State<AMapDemo> {
 
   @override
   Widget build(BuildContext context) {
-    AMapInitializer.init(context, apiKey: ConstConfig.amapApiKeys);
+    LocationPlugin.init(context, apiKey: ConstConfig.amapApiKeys);
 
     return Scaffold(
       // ...
@@ -56,7 +56,7 @@ class DemoWidget extends State<AMapDemo> {
 高德 SDK 合规使用方案请参考：https://lbs.amap.com/news/sdkhgsy ，需要进行授权交互，然后通知组件。
 
 ```dart
-AMapInitializer.updatePrivacyAgree(ConstConfig.amapPrivacyStatement);
+LocationPlugin.updatePrivacyAgree(ConstConfig.amapPrivacyStatement);
 ```
 
 ### 使用地图
@@ -252,6 +252,31 @@ class AMapController {
   Future<LatLng> fromScreenCoordinate(ScreenCoordinate screenCoordinate);
 }
 
+
+```
+
+## 新增定位插件
+
+```
+
+main 中 初始化
+
+  WidgetsFlutterBinding.ensureInitialized();
+  LocationPlugin.initialize();
+
+  // AMapLocation 中新增很多参数 可以按照需求获取
+
+  //监听定位
+   _locationSubscription = LocationPlugin.locationStream.listen((event) {
+        print('location: ${event.toJson()}');
+      });
+
+  //开始监听
+  LocationPlugin.startListening();
+  //停止监听
+  LocationPlugin.stopListening();
+  //获取单次定位
+  LocationPlugin.getSingleLocation();
 
 ```
 

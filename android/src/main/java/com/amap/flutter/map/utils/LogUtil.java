@@ -11,7 +11,7 @@ import android.util.Log;
  */
 public class LogUtil {
     private static final String TAG = "AMapFlutter_";
-    public static boolean isDebugMode = false;
+    public static boolean isDebugMode = true;
 
     public static void i(String className, String message) {
         if (isDebugMode) {
