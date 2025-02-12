@@ -19,7 +19,13 @@
 使用 Flutter 插件，请参考[在 Flutter 里使用 Packages](https://flutter.cn/docs/development/packages-and-plugins/using-packages), 添加`amap_map`的引用
 
 ```bash
-flutter pub add amap_map
+  amap_map:
+    git:
+      url: https://github.com/JamesGZM/amap_map.git
+  x_amap_base:
+    git:
+      url: https://github.com/JamesGZM/amap_map.git
+      path: packages/x_amap_base
 ```
 
 ## Prepare
@@ -33,6 +39,17 @@ flutter pub add amap_map
 ### 初始化
 
 在 runApp 启动的**第一个**Widget 中，使用`context`进行组件初始化
+
+### Android
+
+```
+app/build.gradle
+defaultConfig中添加
+
+manifestPlaceholders += [
+                AMAP_APPKEY: "你的高德 key",
+        ]
+```
 
 ```dart
 import 'package:amap_map/amap_map.dart';
